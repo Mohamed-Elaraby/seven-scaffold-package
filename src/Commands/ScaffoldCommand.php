@@ -11,16 +11,18 @@ use Seven\Scaffold\Support\Stub;
 class ScaffoldCommand extends Command
 {
     protected $signature = 'seven:scaffold {name}
-        {--area=admin : admin|front}
-        {--views= : views folder (default plural of name)}
-        {--prefix=admin : url prefix (admin default)}
-        {--name-prefix=admin. : route name prefix}
-        {--middleware=auth : group middleware}
-        {--seeder : generate seeder + register in DatabaseSeeder}
-        {--resource : generate resource controller + resource route}
-    ';
+    {--area=admin : admin|front}
+    {--views= : views folder (default plural of name)}
+    {--layout= : blade layout name (e.g. admin.layouts.app)}
+    {--prefix=admin : url prefix (admin default)}
+    {--name-prefix=admin. : route name prefix}
+    {--middleware=auth : group middleware}
+    {--seeder : generate seeder + register in DatabaseSeeder}
+    {--resource : generate resource controller + resource route}
+';
 
     protected $description = 'Generate model, migration, controller, CRUD views (blueprint), seeder, and routes';
+
 
     public function handle(Filesystem $fs): int
     {
@@ -42,9 +44,12 @@ class ScaffoldCommand extends Command
             '--resource' => (bool) $this->option('resource'),
         ]);
 
+        $defaultLayout = $area === 'admin' ? 'admin.layouts.app' : 'front.layouts.app';
+        $layout = $this->option('layout') ?: $defaultLayout;
+
         // 3) Views (CRUD blueprint)
         Stub::publishCrudViews($fs, $area, $viewsFolder, [
-            'layout' => $area === 'admin' ? 'admin.layouts.app' : 'front.layouts.app',
+            'layout' => $layout,
             'title' => Str::headline($viewsFolder),
             'view_base' => "{$area}.{$viewsFolder}",
             'index_route' => "{{ route('{$area}.{$uri}.index') }}",
