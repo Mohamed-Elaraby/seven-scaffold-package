@@ -61,6 +61,10 @@ class ScaffoldCommand extends Command
             'destroy_route' => "{{ route('{$area}.{$uri}.destroy', \$row->id) }}",
         ]);
 
+        $viewsPath = resource_path("views/{$area}/{$viewsFolder}");
+        $count = count(glob($viewsPath.'/*.blade.php'));
+        $this->info("Views generated ({$count} files): {$viewsPath}");
+
         // 4) Seeder + register
         $inserter = new FileInserter($fs);
 
