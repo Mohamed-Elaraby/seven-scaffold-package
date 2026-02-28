@@ -1,0 +1,24 @@
+{
+    "name": "seven/scaffold",
+    "description": "Seven Scaffold Generator",
+    "type": "library",
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Seven\\Scaffold\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Seven\\Scaffold\\SevenScaffoldServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": ">=8.1",
+        "illuminate/support": "^10.0|^11.0|^12.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
