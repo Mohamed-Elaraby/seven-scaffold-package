@@ -23,29 +23,34 @@ class ScaffoldCommand extends Command
 
     protected $description = 'Generate model, migration, controller, CRUD views (blueprint), seeder, and routes';
 
-
     public function handle(Filesystem $fs): int
     {
-        $name = Str::studly($this->argument('name'));           // Branch
+        $name = Str::studly($this->argument('name')); // Branch
         $area = strtolower($this->option('area')) === 'front' ? 'front' : 'admin';
 
         $viewsFolder = $this->option('views') ?: Str::kebab(Str::pluralStudly($name)); // branches
-        $uri = Str::kebab(Str::pluralStudly($name));           // branches
+        $uri = Str::kebab(Str::pluralStudly($name)); // branches
 
-        // 1) Model + Migration
-        $this->call('make:model', ['name' => $name, '-m' => true]);
-
-        // 2) Controller namespace
         $ns = $area === 'admin' ? 'Admin' : 'Front';
         $controllerName = "{$ns}/{$name}Controller";
 
+        $defaultLayout = $area === 'admin' ? 'admin.layouts.app' : 'front.layouts.app';
+        $layout = $this->option('layout') ?: $defaultLayout;
+
+        $this->line('');
+        $this->components->twoColumnDetail('Seven Scaffold', 'Starting...');
+        $this->line('');
+
+        // 1) Model + Migration
+        $this->call('make:model', ['name' => $name, '-m' => true]);
+        $this->components->twoColumnDetail('Model & Migration', 'Done');
+
+        // 2) Controller
         $this->call('make:controller', [
             'name' => $controllerName,
             '--resource' => (bool) $this->option('resource'),
         ]);
-
-        $defaultLayout = $area === 'admin' ? 'admin.layouts.app' : 'front.layouts.app';
-        $layout = $this->option('layout') ?: $defaultLayout;
+        $this->components->twoColumnDetail("Controller ({$ns})", 'Done');
 
         // 3) Views (CRUD blueprint)
         Stub::publishCrudViews($fs, $area, $viewsFolder, [
@@ -62,8 +67,9 @@ class ScaffoldCommand extends Command
         ]);
 
         $viewsPath = resource_path("views/{$area}/{$viewsFolder}");
-        $count = count(glob($viewsPath.'/*.blade.php'));
-        $this->info("Views generated ({$count} files): {$viewsPath}");
+        $count = count(glob($viewsPath . '/*.blade.php'));
+        $this->components->info("Views generated ({$count} files): {$viewsPath}");
+        $this->components->twoColumnDetail("Views ({$count} files)", $viewsPath);
 
         // 4) Seeder + register
         $inserter = new FileInserter($fs);
@@ -72,6 +78,9 @@ class ScaffoldCommand extends Command
             $seederClass = "{$name}Seeder";
             $this->call('make:seeder', ['name' => $seederClass]);
             $inserter->insertSeederCall(database_path('seeders/DatabaseSeeder.php'), $seederClass);
+            $this->components->twoColumnDetail('Seeder', 'Generated + registered');
+        } else {
+            $this->components->twoColumnDetail('Seeder', 'Skipped');
         }
 
         // 5) Routes injection
@@ -102,7 +111,12 @@ class ScaffoldCommand extends Command
             );
         }
 
-        $this->info("✅ Seven Scaffold generated: {$name} ({$area})");
+        $this->components->twoColumnDetail('Routes', "Injected into {$routeFile}");
+
+        $this->line('');
+        $this->components->info("✅ Seven Scaffold generated: {$name} ({$area})");
+        $this->line('');
+
         return self::SUCCESS;
     }
 }
